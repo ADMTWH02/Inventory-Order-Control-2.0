@@ -62,7 +62,7 @@
             <label class="search-box"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Cari PPM, deskripsi, kategori..." autocomplete="off"><kbd>⌘ K</kbd></label>
             <label class="filter-select"><span>Status</span><select id="status-filter"><option value="">Semua status</option><option value="PESAN">Perlu dipesan</option><option value="TIDAK">Stok terkendali</option></select></label>
             <span class="results-count" id="results-count">Memuat data...</span>
-            <button class="button button-danger-quiet" id="delete-all-button" type="button">Hapus semua data</button>
+            <button class="button button-danger-quiet" id="delete-all-button" type="button"><span aria-hidden="true">⌫</span> Hapus semua data</button>
           </div>
 
           <div class="table-wrap" id="table-wrap"><table><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div>
@@ -95,6 +95,20 @@
         <form id="item-form"><div class="form-sections" id="form-sections"></div><p class="form-error" id="form-error" role="alert" hidden></p>
           <footer class="dialog-footer"><span>PPM wajib diisi · seluruh nilai dapat disesuaikan</span><div><button class="button button-outline" id="cancel-button" type="button">Batal</button><button class="button button-primary" id="save-button" type="submit">Simpan material</button></div></footer>
         </form>
+      </section>
+    </div>
+    <div class="confirm-layer" id="confirm-modal" hidden>
+      <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-description">
+        <div class="confirm-icon" aria-hidden="true">!</div>
+        <p class="eyebrow">KONFIRMASI PENGHAPUSAN</p>
+        <h2 id="confirm-title">Hapus material?</h2>
+        <p class="confirm-description" id="confirm-description"></p>
+        <div class="confirm-item" id="confirm-item" hidden></div>
+        <p class="confirm-warning" id="confirm-warning" hidden>Tindakan ini permanen dan tidak dapat dibatalkan.</p>
+        <div class="confirm-actions">
+          <button class="button button-outline" id="confirm-cancel" type="button">Batal</button>
+          <button class="button button-danger" id="confirm-delete" type="button"><span aria-hidden="true">⌫</span> Ya, hapus</button>
+        </div>
       </section>
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>

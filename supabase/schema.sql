@@ -116,7 +116,7 @@ begin
     raise exception 'Akses hanya tersedia untuk akun HOST.';
   end if;
 
-  delete from public.inventory_items;
+  delete from public.inventory_items where id is not null;
   get diagnostics deleted_count = row_count;
   return deleted_count;
 end;

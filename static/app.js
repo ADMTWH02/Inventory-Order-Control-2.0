@@ -48,7 +48,15 @@ const headerMap = new Map(fields.flatMap((field) => [
   [field.key.toUpperCase(), field.key],
   [field.label.toUpperCase(), field.key],
 ]));
-const state = { items: [], user: null, editingId: null, setupRequired: false, toastTimer: null };
+const state = {
+  items: [],
+  user: null,
+  editingId: null,
+  setupRequired: false,
+  toastTimer: null,
+  confirmAction: null,
+  previousFocus: null,
+};
 const byId = (id) => document.getElementById(id);
 let initializePromise = null;
 let excelLibraryPromise = null;
@@ -268,17 +276,52 @@ async function loadItems() {
   renderItems();
 }
 
+function openDeleteConfirmation({ title, description, item = null, warning = false, onConfirm }) {
+  state.confirmAction = onConfirm;
+  state.previousFocus = document.activeElement;
+  byId('confirm-title').textContent = title;
+  byId('confirm-description').textContent = description;
+  byId('confirm-item').hidden = !item;
+  byId('confirm-item').textContent = item
+    ? `${item.ppm}${item.material_description ? ` · ${item.material_description}` : ''}`
+    : '';
+  byId('confirm-warning').hidden = !warning;
+  byId('confirm-delete').disabled = false;
+  byId('confirm-delete').innerHTML = '<span aria-hidden="true">⌫</span> Ya, hapus';
+  byId('confirm-modal').hidden = false;
+  byId('confirm-cancel').focus();
+}
+
+function closeDeleteConfirmation() {
+  byId('confirm-modal').hidden = true;
+  state.confirmAction = null;
+  if (state.previousFocus instanceof HTMLElement) state.previousFocus.focus();
+  state.previousFocus = null;
+}
+
 async function deleteItem(item) {
-  if (!window.confirm(`Hapus material ${item.ppm} — ${item.material_description || ''}?`)) return;
-  try {
-    const { error } = await supabase.from('inventory_items').delete().eq('id', item.id);
-    throwIfError(error);
-    state.items = state.items.filter((row) => row.id !== item.id);
-    renderItems();
-    showToast(`Material ${item.ppm} berhasil dihapus.`);
-  } catch (error) {
-    showToast(error.message, true);
-  }
+  openDeleteConfirmation({
+    title: 'Hapus material ini?',
+    description: 'Material berikut akan dihapus dari daftar inventori.',
+    item,
+    onConfirm: async () => {
+      byId('confirm-delete').disabled = true;
+      byId('confirm-delete').textContent = 'Menghapus...';
+      try {
+        const { error } = await supabase.from('inventory_items').delete().eq('id', item.id);
+        throwIfError(error);
+        state.items = state.items.filter((row) => row.id !== item.id);
+        renderItems();
+        closeDeleteConfirmation();
+        showToast(`Material ${item.ppm} berhasil dihapus.`);
+      } catch (error) {
+        console.error('Failed to delete inventory item:', error);
+        byId('confirm-delete').disabled = false;
+        byId('confirm-delete').innerHTML = '<span aria-hidden="true">⌫</span> Ya, hapus';
+        showToast(`Gagal menghapus material: ${error.message}`, true);
+      }
+    },
+  });
 }
 
 async function checkHostSetup() {
@@ -453,6 +496,13 @@ byId('add-button').addEventListener('click', () => openItemModal());
 byId('empty-add-button').addEventListener('click', () => openItemModal());
 byId('modal-close').addEventListener('click', closeItemModal);
 byId('cancel-button').addEventListener('click', closeItemModal);
+byId('confirm-cancel').addEventListener('click', closeDeleteConfirmation);
+byId('confirm-modal').addEventListener('click', (event) => {
+  if (event.target === byId('confirm-modal')) closeDeleteConfirmation();
+});
+byId('confirm-delete').addEventListener('click', async () => {
+  if (state.confirmAction) await state.confirmAction();
+});
 byId('item-modal').addEventListener('click', (event) => {
   if (event.target === byId('item-modal')) closeItemModal();
 });
@@ -462,6 +512,7 @@ document.addEventListener('keydown', (event) => {
     byId('search-input').focus();
   }
   if (event.key === 'Escape' && !byId('item-modal').hidden) closeItemModal();
+  if (event.key === 'Escape' && !byId('confirm-modal').hidden) closeDeleteConfirmation();
 });
 
 byId('item-form').addEventListener('submit', async (event) => {
@@ -514,19 +565,32 @@ byId('export-button').addEventListener('click', async () => {
 });
 byId('delete-all-button').addEventListener('click', async () => {
   if (!state.items.length) {
-    showToast('Tidak ada data untuk dihapus.');
+    showToast('Belum ada data material yang dapat dihapus.');
     return;
   }
-  if (window.prompt(`Tindakan ini akan menghapus ${state.items.length} material secara permanen. Ketik HAPUS untuk melanjutkan.`) !== 'HAPUS') return;
-  try {
-    const { data, error } = await supabase.rpc('delete_all_inventory');
-    throwIfError(error);
-    state.items = [];
-    renderItems();
-    showToast(`${data} data berhasil dihapus.`);
-  } catch (error) {
-    showToast(error.message, true);
-  }
+  const count = state.items.length;
+  openDeleteConfirmation({
+    title: 'Hapus semua material?',
+    description: `Anda akan menghapus ${count.toLocaleString('id-ID')} material dari inventori.`,
+    warning: true,
+    onConfirm: async () => {
+      byId('confirm-delete').disabled = true;
+      byId('confirm-delete').textContent = 'Menghapus...';
+      try {
+        const { data, error } = await supabase.rpc('delete_all_inventory');
+        throwIfError(error);
+        state.items = [];
+        renderItems();
+        closeDeleteConfirmation();
+        showToast(`${Number(data).toLocaleString('id-ID')} material berhasil dihapus.`);
+      } catch (error) {
+        console.error('Failed to delete all inventory items:', error);
+        byId('confirm-delete').disabled = false;
+        byId('confirm-delete').innerHTML = '<span aria-hidden="true">⌫</span> Ya, hapus';
+        showToast(`Gagal menghapus semua data: ${error.message}`, true);
+      }
+    },
+  });
 });
 
 window.addEventListener('hashchange', updateActiveNavigation);

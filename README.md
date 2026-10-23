@@ -67,3 +67,7 @@ Build statis berada di `dist`. Kredensial Supabase dimasukkan saat build sebagai
 Tombol **Template Excel** mengunduh workbook `.xlsx` kosong berisi header sesuai gambar. **Import Excel** membaca `.xlsx`/`.xls` dengan PPM wajib; PPM yang sudah ada akan diperbarui. **Export Excel** mengunduh seluruh data inventori. Batas impor 10.000 baris dan 10 MB.
 
 Menu navigasi: **Ringkasan**, **Inventori**, dan **Import / Export**. Kolom data mencakup PPM, deskripsi/kategori, pemakaian bulanan JAN–SEP 26, rata-rata, parameter stok, status, harga, ROP/ROQ, order/purchasing, durasi, dan minimum order quantity.
+
+### Memperbarui fungsi Supabase
+
+Setiap perubahan `supabase/migrations/*.sql` perlu dijalankan di Supabase Dashboard → SQL Editor. Contohnya, untuk memperbaiki hapus semua data, jalankan [`202610230001_fix_bulk_inventory_delete.sql`](./supabase/migrations/202610230001_fix_bulk_inventory_delete.sql). Aplikasi tidak dapat mengubah fungsi database hanya dengan deploy Netlify.
