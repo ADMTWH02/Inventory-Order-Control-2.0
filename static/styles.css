@@ -46,7 +46,7 @@ button, a, select { -webkit-tap-highlight-color: transparent; }
 .hero-note span:last-child { display: grid; gap: 3px; }
 .hero-note strong { font-size: 10px; }
 .hero-note small { color: #89949a; font-size: 9px; }
-.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; margin-bottom: 28px; }
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; margin-bottom: 16px; }
 .metric-card { min-height: 110px; position: relative; display: flex; align-items: flex-start; gap: 12px; padding: 18px 17px; border: 1px solid #e5e9e9; border-radius: 9px; background: #fff; overflow: hidden; }
 .metric-icon { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 8px; font-size: 13px; font-weight: 700; }
 .icon-blue { color: #34768b; background: #e8f2f5; }
@@ -59,6 +59,26 @@ button, a, select { -webkit-tap-highlight-color: transparent; }
 .metric-card small { color: #a0a9ae; font-size: 9px; }
 .metric-index { position: absolute; top: 13px; right: 14px; color: #c4ccce; font: 600 9px Manrope, sans-serif; }
 .metric-value strong { font-size: 18px; padding-top: 3px; }
+.order-value-panel { margin-bottom: 28px; overflow: hidden; border: 1px solid #e3e8e9; border-radius: 10px; background: #fff; }
+.order-value-heading { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 19px 22px; border-bottom: 1px solid #edf0f0; }
+.order-value-heading .eyebrow { margin-bottom: 5px; }
+.order-value-heading h2 { margin: 0; font: 700 18px Manrope, sans-serif; letter-spacing: -.4px; }
+.order-value-grand-total { color: #16756e; font: 800 20px Manrope, sans-serif; white-space: nowrap; }
+.order-value-content { padding: 20px 22px; }
+.order-chart-layout { display: grid; grid-template-columns: minmax(230px, .8fr) minmax(0, 1.2fr); align-items: center; gap: 22px; }
+.donut-wrap { position: relative; width: min(100%, 300px); aspect-ratio: 1; justify-self: center; }
+.order-value-donut { display: block; width: 100%; height: 100%; overflow: visible; }
+.donut-center { position: absolute; inset: 34%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; border-radius: 50%; background: #fff; text-align: center; }
+.donut-center span { color: #849098; font-size: 9px; }
+.donut-center strong { max-width: 100%; color: var(--ink); font: 800 13px Manrope, sans-serif; overflow-wrap: anywhere; }
+.chart-legend { display: grid; max-height: 300px; gap: 4px; overflow: auto; margin: 0; padding: 0 8px 0 0; list-style: none; }
+.chart-legend li { display: flex; align-items: flex-start; gap: 9px; padding: 9px 8px; border-bottom: 1px solid #f0f2f2; }
+.chart-swatch { width: 10px; height: 10px; flex: 0 0 10px; margin-top: 3px; border-radius: 3px; }
+.chart-legend-description { display: grid; gap: 3px; min-width: 0; }
+.chart-legend-description strong { color: #43545f; font-size: 10px; font-weight: 700; overflow-wrap: anywhere; }
+.chart-legend-description small { color: #89969c; font-size: 9px; }
+.order-value-note { margin: 14px 0 0; color: #87939a; font-size: 10px; line-height: 1.5; }
+.order-value-empty { padding: 32px 12px; color: #87939a; text-align: center; font-size: 11px; }
 .inventory-panel { border: 1px solid #e3e8e9; border-radius: 10px; background: #fff; overflow: hidden; }
 .panel-heading { min-height: 91px; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 19px 22px; }
 .panel-heading .eyebrow { margin-bottom: 5px; }
@@ -255,6 +275,7 @@ td { line-height: 1.45; }
   .nav-link:first-child { padding-left: 0; }
   .nav-link.active::after { left: 0; }
   .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .order-chart-layout { grid-template-columns: minmax(180px, .7fr) minmax(0, 1.3fr); gap: 12px; }
   .hero-note { display: none; }
   .panel-heading { align-items: flex-start; flex-direction: column; }
   .toolbar { width: 100%; flex-wrap: wrap; }
@@ -271,6 +292,12 @@ td { line-height: 1.45; }
   .hero h1 { font-size: 26px; }
   .hero-copy { max-width: 330px; font-size: 11px; line-height: 1.5; }
   .metrics { gap: 8px; margin-bottom: 17px; }
+  .order-value-heading { align-items: flex-start; flex-direction: column; padding: 16px; }
+  .order-value-heading h2 { font-size: 17px; }
+  .order-value-content { padding: 14px; }
+  .order-chart-layout { grid-template-columns: 1fr; }
+  .donut-wrap { width: min(80vw, 280px); }
+  .chart-legend { max-height: 240px; }
   .metric-card { min-height: 98px; gap: 8px; padding: 13px 10px; }
   .metric-icon { width: 26px; height: 26px; flex-basis: 26px; }
   .metric-card strong { font-size: 19px; }

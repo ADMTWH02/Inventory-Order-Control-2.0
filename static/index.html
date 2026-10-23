@@ -42,6 +42,26 @@
           <article class="metric-card"><span class="metric-icon icon-red" aria-hidden="true">!</span><div><span class="metric-label">Perlu dipesan</span><strong id="metric-order">—</strong><small>status PESAN</small></div><span class="metric-index">02</span></article>
           <article class="metric-card"><span class="metric-icon icon-green" aria-hidden="true">✓</span><div><span class="metric-label">Stok terkendali</span><strong id="metric-safe">—</strong><small>status TIDAK</small></div><span class="metric-index">03</span></article>
           <article class="metric-card metric-value"><span class="metric-icon icon-gold" aria-hidden="true">Rp</span><div><span class="metric-label">Total nilai stok</span><strong id="metric-value">—</strong><small>berdasarkan MAX. VALUE</small></div><span class="metric-index">04</span></article>
+          <article class="metric-card"><span class="metric-icon icon-blue" aria-hidden="true">PR</span><div><span class="metric-label">Item sudah ada PR</span><strong id="metric-purchase-request">—</strong><small>Purchase Requisition terisi</small></div><span class="metric-index">05</span></article>
+          <article class="metric-card"><span class="metric-icon icon-gold" aria-hidden="true">PO</span><div><span class="metric-label">Item sudah ada PO</span><strong id="metric-purchase-order">—</strong><small>Purchase Order terisi</small></div><span class="metric-index">06</span></article>
+        </section>
+
+        <section class="order-value-panel" id="order-value-panel" aria-labelledby="order-value-title">
+          <div class="order-value-heading">
+            <div><p class="eyebrow">ANALISIS PEMESANAN</p><h2 id="order-value-title">Nilai order belum memiliki PR &amp; PO</h2><p class="panel-subtitle">Hanya material berstatus PESAN dengan PR dan PO sama-sama kosong.</p></div>
+            <strong class="order-value-grand-total" id="order-value-total">Rp 0</strong>
+          </div>
+          <div class="order-value-content">
+            <div class="order-value-empty" id="order-value-empty" hidden>Belum ada nilai order yang memenuhi kriteria grafik.</div>
+            <div class="order-chart-layout" id="order-value-chart" hidden>
+              <div class="donut-wrap">
+                <svg class="order-value-donut" id="order-value-donut" viewBox="0 0 240 240" role="img" aria-label="Grafik lingkaran nilai order menurut kategori dan sub-kategori"></svg>
+                <div class="donut-center"><span>Total nilai order</span><strong id="order-value-total-center"></strong></div>
+              </div>
+              <ul class="chart-legend" id="order-value-legend" aria-label="Rincian nilai berdasarkan Part Category dan Sub-Category"></ul>
+            </div>
+            <p class="order-value-note" id="order-value-note"></p>
+          </div>
         </section>
 
         <section class="inventory-panel" id="inventory">

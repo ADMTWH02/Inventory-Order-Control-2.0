@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   calculateRollingStats,
   getAutomaticStatus,
+  getProcurementSummary,
   latestMonthKeys,
   monthRange,
   parseMonthHeader,
@@ -61,4 +62,64 @@ test('automatic status orders below ROP and remains safe at or above ROP', () =>
   assert.equal(getAutomaticStatus('1.200', '1.200'), 'TIDAK');
   assert.equal(getAutomaticStatus('1300', '1.200'), 'TIDAK');
   assert.equal(getAutomaticStatus('', '1.200'), '');
+});
+
+test('procurement summary counts populated PR and PO and groups uncommitted order value', () => {
+  const summary = getProcurementSummary([
+    {
+      status: 'PESAN',
+      purchase_requisition: '',
+      purchase_order: '',
+      price: '1.000',
+      qty_order: '2',
+      part_category: 'Electrical',
+      sub_category: 'Cable',
+    },
+    {
+      status: 'PESAN',
+      purchase_requisition: '',
+      purchase_order: '',
+      price: '500',
+      qty_order: '3',
+      part_category: 'Electrical',
+      sub_category: 'Cable',
+    },
+    {
+      status: 'PESAN',
+      purchase_requisition: 'PR-1',
+      purchase_order: '',
+      price: '900',
+      qty_order: '1',
+      part_category: 'Mechanical',
+      sub_category: 'Valve',
+    },
+    {
+      status: 'TIDAK',
+      purchase_requisition: '',
+      purchase_order: 'PO-2',
+      price: '700',
+      qty_order: '1',
+      part_category: 'Mechanical',
+      sub_category: 'Valve',
+    },
+    {
+      status: 'PESAN',
+      purchase_requisition: '',
+      purchase_order: '',
+      price: '',
+      qty_order: '1',
+      part_category: 'Mechanical',
+      sub_category: 'Valve',
+    },
+  ]);
+
+  assert.equal(summary.withPurchaseRequest, 1);
+  assert.equal(summary.withPurchaseOrder, 1);
+  assert.equal(summary.missingValueCount, 1);
+  assert.deepEqual(summary.orderValueBySubcategory, [{
+    category: 'Electrical',
+    subCategory: 'Cable',
+    itemCount: 2,
+    value: 3500,
+  }]);
 });

@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import {
   formatMonthLabel,
   getAutomaticStatus,
+  getProcurementSummary,
   latestMonthKeys,
   monthKey,
   monthRange,
@@ -215,10 +216,70 @@ function formatRupiah(value) {
 
 function renderMetrics() {
   const items = state.items;
+  const procurement = getProcurementSummary(items);
   byId('metric-total').textContent = items.length.toLocaleString('id-ID');
   byId('metric-order').textContent = items.filter((item) => (item.status || '').toUpperCase() === 'PESAN').length.toLocaleString('id-ID');
   byId('metric-safe').textContent = items.filter((item) => (item.status || '').toUpperCase() === 'TIDAK').length.toLocaleString('id-ID');
-  byId('metric-value').textContent = formatRupiah(items.reduce((sum, item) => sum + parseNumeric(item.max_value), 0));
+  byId('metric-value').textContent = formatRupiah(items.reduce((sum, item) => sum + (parseNumeric(item.max_value) || 0), 0));
+  byId('metric-purchase-request').textContent = procurement.withPurchaseRequest.toLocaleString('id-ID');
+  byId('metric-purchase-order').textContent = procurement.withPurchaseOrder.toLocaleString('id-ID');
+  renderOrderValueChart(procurement);
+}
+
+function renderOrderValueChart({ orderValueBySubcategory, missingValueCount }) {
+  const chart = byId('order-value-chart');
+  const legend = byId('order-value-legend');
+  const empty = byId('order-value-empty');
+  const note = byId('order-value-note');
+  const svg = byId('order-value-donut');
+  const total = orderValueBySubcategory.reduce((sum, entry) => sum + entry.value, 0);
+  byId('order-value-total').textContent = formatRupiah(total);
+  byId('order-value-total-center').textContent = formatRupiah(total);
+  svg.replaceChildren();
+  legend.replaceChildren();
+  chart.hidden = total <= 0;
+  empty.hidden = total > 0;
+  note.textContent = missingValueCount
+    ? `${missingValueCount.toLocaleString('id-ID')} material PESAN tanpa PR/PO tidak masuk grafik karena Price atau Qty order belum terisi sebagai angka.`
+    : 'Nominal dihitung dari Price × Qty order, dikelompokkan berdasarkan Part Category / Sub-Category.';
+  if (total <= 0) return;
+
+  const colors = ['#157f78', '#34768b', '#bc8d3c', '#bd594d', '#7864a5', '#4d936e', '#d07838', '#5073a3', '#aa6689', '#758b46'];
+  let offset = 0;
+  for (const [index, entry] of orderValueBySubcategory.entries()) {
+    const circumference = 2 * Math.PI * 82;
+    const segmentLength = (entry.value / total) * circumference;
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', '120');
+    circle.setAttribute('cy', '120');
+    circle.setAttribute('r', '82');
+    circle.setAttribute('fill', 'none');
+    circle.setAttribute('stroke', colors[index % colors.length]);
+    circle.setAttribute('stroke-width', '34');
+    circle.setAttribute('stroke-dasharray', `${segmentLength} ${circumference - segmentLength}`);
+    circle.setAttribute('stroke-dashoffset', String(-offset));
+    circle.setAttribute('transform', 'rotate(-90 120 120)');
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    title.textContent = `${entry.category} / ${entry.subCategory}: ${formatRupiah(entry.value)}`;
+    circle.append(title);
+    svg.append(circle);
+    offset += segmentLength;
+
+    const row = document.createElement('li');
+    const swatch = document.createElement('span');
+    swatch.className = 'chart-swatch';
+    swatch.style.backgroundColor = colors[index % colors.length];
+    swatch.setAttribute('aria-hidden', 'true');
+    const description = document.createElement('span');
+    description.className = 'chart-legend-description';
+    const label = document.createElement('strong');
+    label.textContent = `${entry.category} / ${entry.subCategory}`;
+    const details = document.createElement('small');
+    details.textContent = `${formatRupiah(entry.value)} · ${entry.itemCount.toLocaleString('id-ID')} item · ${((entry.value / total) * 100).toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`;
+    description.append(label, details);
+    row.append(swatch, description);
+    legend.append(row);
+  }
 }
 
 function renderFormSections() {

@@ -31,6 +31,49 @@ export function getAutomaticStatus(stock, rop) {
   return stockValue < ropValue ? 'PESAN' : 'TIDAK';
 }
 
+export function getProcurementSummary(items) {
+  const withPurchaseRequest = items.filter((item) => String(item.purchase_requisition ?? '').trim() !== '').length;
+  const withPurchaseOrder = items.filter((item) => String(item.purchase_order ?? '').trim() !== '').length;
+  const orderValueBySubcategory = new Map();
+  let missingValueCount = 0;
+
+  for (const item of items) {
+    if (String(item.status ?? '').toUpperCase() !== 'PESAN'
+      || String(item.purchase_requisition ?? '').trim() !== ''
+      || String(item.purchase_order ?? '').trim() !== '') continue;
+
+    const price = parseNumeric(item.price);
+    const quantity = parseNumeric(item.qty_order);
+    if (price === null || quantity === null) {
+      missingValueCount += 1;
+      continue;
+    }
+    const amount = price * quantity;
+    if (amount <= 0) continue;
+
+    const category = String(item.part_category ?? '').trim() || 'Belum dikategorikan';
+    const subCategory = String(item.sub_category ?? '').trim() || 'Belum dikategorikan';
+    const label = `${category} / ${subCategory}`;
+    const summary = orderValueBySubcategory.get(label) || {
+      category,
+      subCategory,
+      itemCount: 0,
+      value: 0,
+    };
+    summary.itemCount += 1;
+    summary.value += amount;
+    orderValueBySubcategory.set(label, summary);
+  }
+
+  return {
+    withPurchaseRequest,
+    withPurchaseOrder,
+    missingValueCount,
+    orderValueBySubcategory: [...orderValueBySubcategory.values()]
+      .sort((left, right) => right.value - left.value),
+  };
+}
+
 export function monthKey(date) {
   const year = date.getUTCFullYear();
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
