@@ -24,7 +24,9 @@ button, a, select { -webkit-tap-highlight-color: transparent; }
 .nav-link.active::after { position: absolute; right: 12px; bottom: 0; left: 12px; height: 2px; border-radius: 2px 2px 0 0; background: #18837b; content: ''; }
 .hero, .inventory-panel, .metrics, #excel-tools { scroll-margin-top: 18px; }
 .brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
-.brand-mark { width: 37px; height: 37px; display: grid; place-items: center; border-radius: 11px; color: #fff; background: var(--navy); font: 800 12px Manrope, sans-serif; letter-spacing: -.5px; }
+.brand-logo { width: 58px; height: 58px; flex: 0 0 58px; display: block; border-radius: 12px; object-fit: cover; box-shadow: 0 7px 18px rgb(16 38 56 / 18%); animation: logo-float 3.4s ease-in-out infinite; }
+@keyframes logo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@media (prefers-reduced-motion: reduce) { .brand-logo { animation: none; } }
 .brand-copy { display: grid; gap: 1px; }
 .brand-copy strong { font: 700 13px Manrope, sans-serif; letter-spacing: -.2px; }
 .brand-copy small { color: #87939b; font-size: 10px; letter-spacing: .2px; }
@@ -118,7 +120,7 @@ td { color: #56656d; }
 .auth-card { width: min(420px, 100%); padding: 33px 35px 28px; border: 1px solid #e6ebeb; border-radius: 12px; background: #fff; box-shadow: 0 24px 80px rgb(17 37 50 / 23%); }
 .auth-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 34px; color: #72818a; font-size: 9px; letter-spacing: 1px; }
 .auth-brand b { color: var(--ink); }
-.auth-brand .brand-mark { width: 32px; height: 32px; font-size: 10px; }
+.auth-brand .brand-logo { width: 48px; height: 48px; flex-basis: 48px; border-radius: 10px; }
 .auth-card .eyebrow { color: #33827b; }
 .auth-card h2 { margin: 0; font: 800 24px Manrope, sans-serif; letter-spacing: -.8px; }
 .auth-description { margin: 7px 0 21px; color: #829098; font-size: 11px; line-height: 1.5; }
@@ -183,7 +185,7 @@ td { color: #56656d; }
 body { font-size: 14px; }
 .shell { width: min(1720px, 100%); padding-right: clamp(18px, 3.2vw, 56px); padding-left: clamp(18px, 3.2vw, 56px); }
 .topbar { min-height: 82px; }
-.brand-mark { width: 42px; height: 42px; font-size: 14px; }
+.brand-logo { width: 62px; height: 62px; flex-basis: 62px; }
 .brand-copy strong { font-size: 15px; }
 .brand-copy small { font-size: 11px; }
 .nav-link { padding-right: 14px; padding-left: 14px; font-size: 13px; }
@@ -301,7 +303,7 @@ td { line-height: 1.45; }
   .dialog-footer .button { flex: 1; }
   .auth-card { padding: 27px 23px 23px; }
   .topbar { min-height: 66px; }
-  .brand-mark { width: 36px; height: 36px; }
+  .brand-logo { width: 54px; height: 54px; flex-basis: 54px; }
   .brand-copy strong { font-size: 13px; }
   .nav-link { padding: 0 9px; font-size: 11px; }
   .hero { padding-top: 32px; }
