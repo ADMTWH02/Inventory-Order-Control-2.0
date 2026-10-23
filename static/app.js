@@ -152,9 +152,11 @@ function valueCell(item, field) {
     badge.textContent = value === '—' ? 'KOSONG' : value.toUpperCase();
     td.append(badge);
   } else {
-    td.textContent = field.key === 'price'
-      ? `Rp ${formatRoundedNumber(item[field.key])}`
-      : formatRoundedNumber(item[field.key]);
+    td.textContent = field.key === 'ppm'
+      ? value
+      : field.key === 'price'
+        ? `Rp ${formatRoundedNumber(item[field.key])}`
+        : formatRoundedNumber(item[field.key]);
     if (field.key === 'material_description') td.classList.add('material-cell');
     if (['part_category', 'sub_category'].includes(field.key)) td.classList.add('category-cell');
   }
