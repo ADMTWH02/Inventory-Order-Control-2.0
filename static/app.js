@@ -292,10 +292,13 @@ function openDeleteConfirmation({ title, description, item = null, warning = fal
   byId('confirm-cancel').focus();
 }
 
-function closeDeleteConfirmation() {
+function closeDeleteConfirmation({ focusTarget = null } = {}) {
   byId('confirm-modal').hidden = true;
   state.confirmAction = null;
-  if (state.previousFocus instanceof HTMLElement) state.previousFocus.focus();
+  const returnFocus = focusTarget
+    || (state.previousFocus instanceof HTMLElement && state.previousFocus.isConnected ? state.previousFocus : null)
+    || byId('search-input');
+  returnFocus.focus();
   state.previousFocus = null;
 }
 
@@ -312,7 +315,7 @@ async function deleteItem(item) {
         throwIfError(error);
         state.items = state.items.filter((row) => row.id !== item.id);
         renderItems();
-        closeDeleteConfirmation();
+        closeDeleteConfirmation({ focusTarget: byId('search-input') });
         showToast(`Material ${item.ppm} berhasil dihapus.`);
       } catch (error) {
         console.error('Failed to delete inventory item:', error);
@@ -507,6 +510,22 @@ byId('item-modal').addEventListener('click', (event) => {
   if (event.target === byId('item-modal')) closeItemModal();
 });
 document.addEventListener('keydown', (event) => {
+  if (event.key === 'Tab' && !byId('confirm-modal').hidden) {
+    const dialog = byId('confirm-modal').querySelector('.confirm-dialog');
+    const focusable = [...dialog.querySelectorAll('button:not(:disabled):not([hidden])')];
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    } else if (!dialog.contains(document.activeElement)) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
     byId('search-input').focus();
@@ -581,7 +600,7 @@ byId('delete-all-button').addEventListener('click', async () => {
         throwIfError(error);
         state.items = [];
         renderItems();
-        closeDeleteConfirmation();
+        closeDeleteConfirmation({ focusTarget: byId('add-button') });
         showToast(`${Number(data).toLocaleString('id-ID')} material berhasil dihapus.`);
       } catch (error) {
         console.error('Failed to delete all inventory items:', error);

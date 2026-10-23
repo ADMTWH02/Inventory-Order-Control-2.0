@@ -162,6 +162,9 @@ td { color: #56656d; }
 .button-danger:disabled { cursor: wait; opacity: .7; }
 .button:disabled { cursor: wait; opacity: .65; }
 @keyframes confirm-enter { from { opacity: 0; transform: translateY(7px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
 
 /* Give the inventory table a calmer, more readable density on desktop and mobile. */
 body { font-size: 14px; }
