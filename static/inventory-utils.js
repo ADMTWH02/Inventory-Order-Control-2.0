@@ -43,12 +43,12 @@ export function getProcurementSummary(items) {
       || String(item.purchase_order ?? '').trim() !== '') continue;
 
     const price = parseNumeric(item.price);
-    const quantity = parseNumeric(item.qty_order);
-    if (price === null || quantity === null) {
+    const rop = parseNumeric(item.rop_minstock);
+    if (price === null || rop === null) {
       missingValueCount += 1;
       continue;
     }
-    const amount = price * quantity;
+    const amount = price * rop;
     if (amount <= 0) continue;
 
     const category = String(item.part_category ?? '').trim() || 'Belum dikategorikan';

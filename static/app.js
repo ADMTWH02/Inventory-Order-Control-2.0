@@ -240,8 +240,8 @@ function renderOrderValueChart({ orderValueBySubcategory, missingValueCount }) {
   chart.hidden = total <= 0;
   empty.hidden = total > 0;
   note.textContent = missingValueCount
-    ? `${missingValueCount.toLocaleString('id-ID')} material PESAN tanpa PR/PO tidak masuk grafik karena Price atau Qty order belum terisi sebagai angka.`
-    : 'Nominal dihitung dari Price × Qty order, dikelompokkan berdasarkan Part Category / Sub-Category.';
+    ? `${missingValueCount.toLocaleString('id-ID')} material PESAN tanpa PR/PO tidak masuk grafik karena Price atau ROP belum terisi sebagai angka.`
+    : 'Nominal dihitung dari Price × ROP, dikelompokkan berdasarkan Part Category / Sub-Category.';
   if (total <= 0) return;
 
   const colors = ['#157f78', '#34768b', '#bc8d3c', '#bd594d', '#7864a5', '#4d936e', '#d07838', '#5073a3', '#aa6689', '#758b46'];
