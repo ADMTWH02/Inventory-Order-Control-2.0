@@ -1,34 +1,34 @@
 import { createClient } from '@supabase/supabase-js';
+import {
+  formatMonthLabel,
+  getAutomaticStatus,
+  latestMonthKeys,
+  monthKey,
+  monthRange,
+  parseMonthHeader,
+  parseNumeric,
+} from './inventory-utils.js';
 
 const fields = [
   { key: 'ppm', label: 'PPM', section: 'Identitas material', required: true },
   { key: 'material_description', label: 'Material description', section: 'Identitas material' },
   { key: 'part_category', label: 'Part category', section: 'Identitas material' },
   { key: 'sub_category', label: 'Sub-category', section: 'Identitas material' },
-  { key: 'jan_26', label: 'Jan 26', section: 'Pemakaian bulanan' },
-  { key: 'feb_26', label: 'Feb 26', section: 'Pemakaian bulanan' },
-  { key: 'mar_26', label: 'Mar 26', section: 'Pemakaian bulanan' },
-  { key: 'apr_26', label: 'Apr 26', section: 'Pemakaian bulanan' },
-  { key: 'may_26', label: 'Mei 26', section: 'Pemakaian bulanan' },
-  { key: 'jun_26', label: 'Jun 26', section: 'Pemakaian bulanan' },
-  { key: 'jul_26', label: 'Jul 26', section: 'Pemakaian bulanan' },
-  { key: 'aug_26', label: 'Aug 26', section: 'Pemakaian bulanan' },
-  { key: 'sep_26', label: 'Sep 26', section: 'Pemakaian bulanan' },
-  { key: 'average_monthly_update', label: 'Average/M (update)', section: 'Parameter perencanaan' },
+  { key: 'average_monthly_update', label: 'Average/M · 6 bulan', section: 'Parameter perencanaan', readonly: true },
   { key: 'average', label: 'Average', section: 'Parameter perencanaan' },
   { key: 'average_daily', label: 'Average/D', section: 'Parameter perencanaan' },
   { key: 'lead_time_full', label: 'Lead time full', section: 'Parameter perencanaan' },
   { key: 'cycle_stock', label: 'Cycle stock', section: 'Parameter perencanaan' },
   { key: 'service_factor', label: 'Service factor', section: 'Parameter perencanaan' },
   { key: 'lead_time_factor', label: 'Lead time factor', section: 'Parameter perencanaan' },
-  { key: 'standard_deviation_update', label: 'Standard dev. (update)', section: 'Parameter perencanaan' },
+  { key: 'standard_deviation_update', label: 'Standard dev. · 6 bulan', section: 'Parameter perencanaan', readonly: true },
   { key: 'safety_stock', label: 'Safety stock', section: 'Parameter perencanaan' },
   { key: 'lead_time', label: 'Lead time', section: 'Parameter perencanaan' },
   { key: 'max_stock', label: 'Max. stock', section: 'Parameter perencanaan' },
-  { key: 'status', label: 'Status', section: 'Kontrol stok', type: 'status' },
+  { key: 'status', label: 'Status', section: 'Kontrol stok', type: 'status', readonly: true },
   { key: 'price', label: 'Price', section: 'Kontrol stok' },
   { key: 'max_value', label: 'Max. value', section: 'Kontrol stok' },
-  { key: 'stock_2026_10_20_update', label: 'Stock 20.10.2026 (update)', section: 'Kontrol stok' },
+  { key: 'stock_2026_10_20_update', label: 'Stock quantity (update)', section: 'Kontrol stok' },
   { key: 'rop_minstock', label: 'ROP (minstock)', section: 'Kontrol stok' },
   { key: 'roq_order', label: 'ROQ (order)', section: 'Kontrol stok' },
   { key: 'qty_order', label: 'Qty order', section: 'Kontrol stok' },
@@ -48,6 +48,7 @@ const headerMap = new Map(fields.flatMap((field) => [
   [field.key.toUpperCase(), field.key],
   [field.label.toUpperCase(), field.key],
 ]));
+headerMap.set('STOCK 20.10.2026 (UPDATE)', 'stock_2026_10_20_update');
 const state = {
   items: [],
   user: null,
@@ -68,6 +69,12 @@ function showToast(message, isError = false) {
   toast.classList.add('visible');
   clearTimeout(state.toastTimer);
   state.toastTimer = setTimeout(() => toast.classList.remove('visible'), 3500);
+}
+
+function monthValueCell(item, month) {
+  const td = document.createElement('td');
+  td.textContent = item.monthly_usage?.[month] ?? '—';
+  return td;
 }
 
 function throwIfError(error) {
@@ -99,7 +106,20 @@ function setAuthMode(setupRequired) {
 
 function renderTableHead() {
   const row = document.createElement('tr');
-  for (const field of fields) {
+  const identityFields = fields.slice(0, 4);
+  const remainingFields = fields.slice(4);
+  for (const field of identityFields) {
+    const th = document.createElement('th');
+    th.textContent = field.label;
+    row.append(th);
+  }
+  for (const month of displayedHistoryMonths()) {
+    const th = document.createElement('th');
+    th.textContent = formatMonthLabel(month);
+    th.title = `Pemakaian ${formatMonthLabel(month)}`;
+    row.append(th);
+  }
+  for (const field of remainingFields) {
     const th = document.createElement('th');
     th.textContent = field.label;
     row.append(th);
@@ -108,6 +128,15 @@ function renderTableHead() {
   actions.textContent = 'AKSI';
   row.append(actions);
   byId('table-head').replaceChildren(row);
+}
+
+function displayedHistoryMonths() {
+  const recordedMonths = state.items.flatMap((item) => Object.keys(item.monthly_usage || {})).sort();
+  if (!recordedMonths.length) return latestMonthKeys();
+  const latest = recordedMonths[recordedMonths.length - 1];
+  const [year, month] = latest.split('-').map(Number);
+  const start = new Date(Date.UTC(year, month - 1 - 5, 1));
+  return monthRange(monthKey(start), latest);
 }
 
 function valueCell(item, field) {
@@ -134,16 +163,21 @@ function visibleItems() {
   return state.items.filter((item) => {
     if (status && (item.status || '').toUpperCase() !== status) return false;
     return !search || fields.some((field) =>
-      (item[field.key] || '').toLocaleLowerCase('id').includes(search));
+      (item[field.key] || '').toLocaleLowerCase('id').includes(search))
+      || Object.entries(item.monthly_usage || {}).some(([month, value]) =>
+        `${formatMonthLabel(month)} ${value}`.toLocaleLowerCase('id').includes(search));
   });
 }
 
 function renderItems() {
+  renderTableHead();
   const list = visibleItems();
   const body = byId('table-body');
   const rows = list.map((item) => {
     const row = document.createElement('tr');
-    for (const field of fields) row.append(valueCell(item, field));
+    for (const field of fields.slice(0, 4)) row.append(valueCell(item, field));
+    for (const month of displayedHistoryMonths()) row.append(monthValueCell(item, month));
+    for (const field of fields.slice(4)) row.append(valueCell(item, field));
     const actionCell = document.createElement('td');
     const actions = document.createElement('div');
     actions.className = 'row-actions';
@@ -173,23 +207,6 @@ function renderItems() {
     ? `${state.items.length} material`
     : `${list.length} dari ${state.items.length} material`;
   renderMetrics();
-}
-
-function parseNumeric(value) {
-  let cleaned = String(value || '').replace(/[^\d,.-]/g, '');
-  const comma = cleaned.lastIndexOf(',');
-  const dot = cleaned.lastIndexOf('.');
-  if (comma >= 0 && dot >= 0) {
-    cleaned = comma > dot
-      ? cleaned.replace(/\./g, '').replace(',', '.')
-      : cleaned.replace(/,/g, '');
-  } else if (comma >= 0) {
-    cleaned = cleaned.replace(',', '.');
-  } else if ((cleaned.match(/\./g) || []).length > 1 || (dot >= 0 && cleaned.length - dot - 1 === 3)) {
-    cleaned = cleaned.replace(/\./g, '');
-  }
-  const number = Number(cleaned);
-  return Number.isFinite(number) ? number : 0;
 }
 
 function formatRupiah(value) {
@@ -236,12 +253,59 @@ function renderFormSections() {
         input.autocomplete = 'off';
         if (field.required) input.required = true;
       }
+      if (field.readonly) {
+        input.disabled = true;
+        input.setAttribute('aria-readonly', 'true');
+      }
       label.append(caption, input);
       grid.append(label);
     }
     sectionElement.append(title, grid);
     container.append(sectionElement);
   }
+  byId('field-stock_2026_10_20_update').addEventListener('input', updateFormStatus);
+  byId('field-rop_minstock').addEventListener('input', updateFormStatus);
+}
+
+function updateFormStatus() {
+  byId('field-status').value = getAutomaticStatus(
+    byId('field-stock_2026_10_20_update').value,
+    byId('field-rop_minstock').value,
+  );
+}
+
+function renderUsageRows(usage = {}, extraMonths = latestMonthKeys()) {
+  const container = byId('usage-entries');
+  container.replaceChildren();
+  const months = [...new Set([...Object.keys(usage), ...extraMonths])].sort().reverse();
+  for (const month of months) addUsageRow(month, usage[month] ?? '');
+}
+
+function addUsageRow(month, quantity = '') {
+  const container = byId('usage-entries');
+  const row = document.createElement('div');
+  row.className = 'usage-row';
+  const monthInput = document.createElement('input');
+  monthInput.type = 'month';
+  monthInput.className = 'usage-month';
+  monthInput.value = month;
+  monthInput.setAttribute('aria-label', 'Bulan pemakaian');
+  monthInput.required = true;
+  const quantityInput = document.createElement('input');
+  quantityInput.type = 'text';
+  quantityInput.inputMode = 'decimal';
+  quantityInput.className = 'usage-quantity';
+  quantityInput.value = quantity;
+  quantityInput.placeholder = 'Kosongkan jika belum ada data';
+  quantityInput.setAttribute('aria-label', `Jumlah pemakaian ${formatMonthLabel(month)}`);
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'row-action delete';
+  remove.textContent = '×';
+  remove.setAttribute('aria-label', `Hapus baris ${formatMonthLabel(month)}`);
+  remove.addEventListener('click', () => row.remove());
+  row.append(monthInput, quantityInput, remove);
+  container.append(row);
 }
 
 function openItemModal(item = null) {
@@ -250,6 +314,9 @@ function openItemModal(item = null) {
   byId('save-button').textContent = item ? 'Simpan perubahan' : 'Simpan material';
   byId('form-error').hidden = true;
   for (const field of fields) byId(`field-${field.key}`).value = item?.[field.key] || '';
+  updateFormStatus();
+  renderUsageRows(item?.monthly_usage || {});
+  byId('usage-month-picker').value = latestMonthKeys(1)[0];
   byId('item-modal').hidden = false;
   byId('field-ppm').focus();
 }
@@ -261,7 +328,10 @@ function closeItemModal() {
 }
 
 async function loadItems() {
+  const { error: calculationError } = await supabase.rpc('refresh_all_inventory_calculations');
+  throwIfError(calculationError);
   const items = [];
+  const usageRows = [];
   const pageSize = 1000;
   for (let start = 0; ; start += pageSize) {
     const { data, error } = await supabase.from('inventory_items')
@@ -272,6 +342,22 @@ async function loadItems() {
     items.push(...data);
     if (data.length < pageSize) break;
   }
+  for (let start = 0; ; start += pageSize) {
+    const { data, error } = await supabase.from('inventory_monthly_usage')
+      .select('inventory_item_id, usage_month, quantity')
+      .order('usage_month', { ascending: true })
+      .range(start, start + pageSize - 1);
+    throwIfError(error);
+    usageRows.push(...data);
+    if (data.length < pageSize) break;
+  }
+  const usageByItem = new Map();
+  for (const row of usageRows) {
+    const usage = usageByItem.get(row.inventory_item_id) || {};
+    usage[row.usage_month.slice(0, 7)] = row.quantity === null ? '' : String(row.quantity).replace('.', ',');
+    usageByItem.set(row.inventory_item_id, usage);
+  }
+  for (const item of items) item.monthly_usage = usageByItem.get(item.id) || {};
   state.items = items;
   renderItems();
 }
@@ -413,12 +499,29 @@ async function getExcelLibrary() {
 
 async function createExcelWorkbook(rows, filename) {
   const XLSX = await getExcelLibrary();
+  const recordedMonths = [...new Set(rows.flatMap((item) => Object.keys(item.monthly_usage || {})))].sort();
+  const months = recordedMonths.length
+    ? monthRange(recordedMonths[0], recordedMonths[recordedMonths.length - 1])
+    : latestMonthKeys();
+  const identityFields = fields.slice(0, 4);
+  const remainingFields = fields.slice(4);
+  const columns = [
+    ...identityFields.map((field) => ({ label: field.label, value: (item) => item[field.key] || '' })),
+    ...months.map((month) => ({
+      label: formatMonthLabel(month),
+      value: (item) => {
+        const quantity = item.monthly_usage?.[month];
+        return quantity === undefined || quantity === '' ? '' : Number(String(quantity).replace(',', '.'));
+      },
+    })),
+    ...remainingFields.map((field) => ({ label: field.label, value: (item) => item[field.key] || '' })),
+  ];
   const worksheetData = [
-    fields.map((field) => field.label),
-    ...rows.map((item) => fields.map((field) => item[field.key] || '')),
+    columns.map((column) => column.label),
+    ...rows.map((item) => columns.map((column) => column.value(item))),
   ];
   const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-  worksheet['!cols'] = fields.map((field) => ({ wch: Math.max(12, Math.min(field.label.length + 3, 30)) }));
+  worksheet['!cols'] = columns.map((column) => ({ wch: Math.max(12, Math.min(column.label.length + 3, 30)) }));
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventory');
   XLSX.writeFile(workbook, filename, { compression: true });
@@ -427,35 +530,58 @@ async function createExcelWorkbook(rows, filename) {
 function parseExcelRows(workbook, XLSX) {
   const worksheet = workbook.Sheets[workbook.SheetNames[0]];
   if (!worksheet) throw new Error('Workbook Excel tidak memiliki sheet data.');
-  const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: false });
+  const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: true });
   if (!rows.length) throw new Error('Sheet Excel tidak memiliki header.');
   const headers = rows[0].map((value) => String(value).trim().toUpperCase());
   if (!headers.some((header) => headerMap.get(header) === 'ppm')) {
     throw new Error('Kolom PPM wajib tersedia pada header Excel.');
   }
+  const monthColumns = headers.map(parseMonthHeader);
+  const uniqueMonths = monthColumns.filter(Boolean);
+  if (new Set(uniqueMonths).size !== uniqueMonths.length) {
+    throw new Error('Header bulan pada Excel tidak boleh duplikat.');
+  }
   const inputRows = rows.slice(1).filter((row) => row.some((value) => String(value).trim() !== ''));
   if (!inputRows.length) throw new Error('Tidak ada baris data untuk diimpor.');
   if (inputRows.length > 10000) throw new Error('Maksimal 10.000 baris dapat diimpor sekaligus.');
-  return inputRows.map((row, index) => {
+  const seenPpm = new Set();
+  const items = [];
+  const usage = [];
+  inputRows.forEach((row, index) => {
     const item = Object.fromEntries(fields.map((field) => [field.key, '']));
     headers.forEach((header, columnIndex) => {
       const key = headerMap.get(header);
-      if (key) item[key] = String(row[columnIndex] ?? '').trim();
+      if (key && !fields.find((field) => field.key === key)?.readonly) {
+        item[key] = String(row[columnIndex] ?? '').trim();
+      }
     });
     for (const field of fields) {
       if (item[field.key].length > 500) throw new Error(`Baris ${index + 2}: nilai kolom ${field.label} melebihi 500 karakter.`);
     }
     if (!item.ppm) throw new Error(`Baris ${index + 2}: PPM wajib diisi.`);
-    return item;
+    if (seenPpm.has(item.ppm)) throw new Error(`Baris ${index + 2}: PPM ${item.ppm} muncul lebih dari sekali.`);
+    seenPpm.add(item.ppm);
+    monthColumns.forEach((month, columnIndex) => {
+      const rawQuantity = String(row[columnIndex] ?? '').trim();
+      if (!month || !rawQuantity) return;
+      const cellValue = row[columnIndex];
+      const quantity = typeof cellValue === 'number' ? cellValue : parseNumeric(rawQuantity);
+      if (quantity === null) {
+        throw new Error(`Baris ${index + 2}: nilai pemakaian ${formatMonthLabel(month)} bukan angka.`);
+      }
+      usage.push({ ppm: item.ppm, usage_month: `${month}-01`, quantity });
+    });
+    items.push(item);
   });
+  return { items, usage };
 }
 
 async function importExcel(file) {
   if (file.size > 10 * 1024 * 1024) throw new Error('Ukuran berkas melebihi batas 10 MB.');
   const XLSX = await getExcelLibrary();
   const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', raw: false });
-  const items = parseExcelRows(workbook, XLSX);
-  const { data, error } = await supabase.rpc('import_inventory', { items });
+  const { items, usage } = parseExcelRows(workbook, XLSX);
+  const { data, error } = await supabase.rpc('import_inventory_with_history', { items, monthly_values: usage });
   throwIfError(error);
   await loadItems();
   showToast(`Impor Excel berhasil. ${data} baris ditambahkan atau diperbarui.`);
@@ -497,6 +623,20 @@ byId('logout-button').addEventListener('click', async () => {
 
 byId('add-button').addEventListener('click', () => openItemModal());
 byId('empty-add-button').addEventListener('click', () => openItemModal());
+byId('usage-add-month').addEventListener('click', () => {
+  const month = byId('usage-month-picker').value;
+  if (!month) {
+    byId('usage-month-picker').focus();
+    return;
+  }
+  const existing = [...byId('usage-entries').querySelectorAll('.usage-month')].find((input) => input.value === month);
+  if (existing) {
+    existing.focus();
+    return;
+  }
+  addUsageRow(month);
+  byId('usage-entries').lastElementChild.querySelector('.usage-month').focus();
+});
 byId('modal-close').addEventListener('click', closeItemModal);
 byId('cancel-button').addEventListener('click', closeItemModal);
 byId('confirm-cancel').addEventListener('click', closeDeleteConfirmation);
@@ -538,19 +678,45 @@ byId('item-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const formError = byId('form-error');
   formError.hidden = true;
-  const item = Object.fromEntries(fields.map((field) => [field.key, byId(`field-${field.key}`).value.trim()]));
+  const item = Object.fromEntries(fields
+    .filter((field) => !field.readonly)
+    .map((field) => [field.key, byId(`field-${field.key}`).value.trim()]));
   const wasEditing = state.editingId !== null;
+  const originalItem = state.items.find((row) => row.id === state.editingId);
+  byId('save-button').disabled = true;
+  byId('save-button').textContent = 'Menyimpan...';
   try {
-    const result = wasEditing
-      ? await supabase.from('inventory_items').update(item).eq('id', state.editingId)
-      : await supabase.from('inventory_items').insert(item);
-    throwIfError(result.error);
+    const usage = new Map();
+    for (const row of byId('usage-entries').querySelectorAll('.usage-row')) {
+      const month = row.querySelector('.usage-month').value;
+      const rawQuantity = row.querySelector('.usage-quantity').value.trim();
+      if (!month) throw new Error('Pilih bulan untuk setiap baris histori.');
+      if (usage.has(month)) throw new Error(`Bulan ${formatMonthLabel(month)} dicantumkan lebih dari sekali.`);
+      if (!rawQuantity) continue;
+      const quantity = parseNumeric(rawQuantity);
+      if (quantity === null) throw new Error(`Jumlah pemakaian ${formatMonthLabel(month)} harus berupa angka.`);
+      usage.set(month, quantity);
+    }
+    const retainedMonths = new Set(usage.keys());
+    const monthsToDelete = Object.keys(originalItem?.monthly_usage || {})
+      .filter((month) => !retainedMonths.has(month))
+      .map((month) => `${month}-01`);
+    const { error } = await supabase.rpc('save_inventory_item_with_history', {
+      item_data: item,
+      history: [...usage].map(([month, quantity]) => ({ usage_month: `${month}-01`, quantity })),
+      deleted_months: monthsToDelete,
+      inventory_item_id: state.editingId,
+    });
+    throwIfError(error);
     await loadItems();
     closeItemModal();
     showToast(wasEditing ? 'Perubahan material berhasil disimpan.' : 'Material berhasil ditambahkan.');
   } catch (error) {
     formError.textContent = error.message;
     formError.hidden = false;
+  } finally {
+    byId('save-button').disabled = false;
+    byId('save-button').textContent = wasEditing ? 'Simpan perubahan' : 'Simpan material';
   }
 });
 

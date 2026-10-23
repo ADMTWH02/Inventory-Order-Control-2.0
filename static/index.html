@@ -46,7 +46,7 @@
 
         <section class="inventory-panel" id="inventory">
           <div class="panel-heading">
-            <div><p class="eyebrow">DATA MASTER</p><h2>Daftar material</h2><p class="panel-subtitle">Kelola detail material kritis dan kebutuhan pemesanan.</p></div>
+            <div><p class="eyebrow">DATA MASTER</p><h2>Daftar material</h2><p class="panel-subtitle">Riwayat pemakaian bulanan, Average/M, Standard Dev., dan status PESAN diperbarui otomatis.</p></div>
             <div class="toolbar">
               <div class="excel-actions" id="excel-tools">
                 <button class="button button-outline" id="import-button" type="button"><span aria-hidden="true">↑</span> Import Excel</button>
@@ -92,8 +92,18 @@
     <div class="modal-layer" id="item-modal" hidden>
       <section class="item-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <header class="dialog-header"><div><p class="eyebrow">DATA MASTER MATERIAL</p><h2 id="modal-title">Tambah material</h2></div><button class="icon-button" id="modal-close" type="button" aria-label="Tutup">×</button></header>
-        <form id="item-form"><div class="form-sections" id="form-sections"></div><p class="form-error" id="form-error" role="alert" hidden></p>
-          <footer class="dialog-footer"><span>PPM wajib diisi · seluruh nilai dapat disesuaikan</span><div><button class="button button-outline" id="cancel-button" type="button">Batal</button><button class="button button-primary" id="save-button" type="submit">Simpan material</button></div></footer>
+        <form id="item-form"><div class="form-content">
+              <div class="form-sections" id="form-sections"></div>
+              <section class="usage-section" aria-labelledby="usage-title">
+                <div class="usage-heading">
+                  <div><h3 id="usage-title">Riwayat pemakaian bulanan</h3><p>Average/M dan Standard Dev. dihitung dari enam bulan terakhir. Angka 0 dihitung; bulan kosong diabaikan.</p></div>
+                  <div class="usage-add"><label class="visually-hidden" for="usage-month-picker">Pilih bulan baru</label><input id="usage-month-picker" type="month"><button class="button button-outline" id="usage-add-month" type="button">Tambah bulan</button></div>
+                </div>
+                <div class="usage-entries" id="usage-entries"></div>
+              </section>
+            </div>
+            <p class="form-error" id="form-error" role="alert" hidden></p>
+          <footer class="dialog-footer"><span>PPM wajib diisi · statistik dan status dihitung otomatis</span><div><button class="button button-outline" id="cancel-button" type="button">Batal</button><button class="button button-primary" id="save-button" type="submit">Simpan material</button></div></footer>
         </form>
       </section>
     </div>
