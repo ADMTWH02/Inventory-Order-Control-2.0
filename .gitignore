@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+instance/
+template-inventory-order-control.xlsx
+
+# Local Netlify folder
+.netlify
