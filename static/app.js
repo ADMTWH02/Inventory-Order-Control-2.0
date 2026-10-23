@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import {
   formatMonthLabel,
+  formatRoundedNumber,
   getAutomaticStatus,
   getProcurementSummary,
   latestMonthKeys,
@@ -74,7 +75,8 @@ function showToast(message, isError = false) {
 
 function monthValueCell(item, month) {
   const td = document.createElement('td');
-  td.textContent = item.monthly_usage?.[month] ?? '—';
+  const value = item.monthly_usage?.[month];
+  td.textContent = value === undefined || value === '' ? '—' : formatRoundedNumber(value);
   return td;
 }
 
@@ -150,10 +152,11 @@ function valueCell(item, field) {
     badge.textContent = value === '—' ? 'KOSONG' : value.toUpperCase();
     td.append(badge);
   } else {
-    td.textContent = value;
+    td.textContent = field.key === 'price'
+      ? `Rp ${formatRoundedNumber(item[field.key])}`
+      : formatRoundedNumber(item[field.key]);
     if (field.key === 'material_description') td.classList.add('material-cell');
     if (['part_category', 'sub_category'].includes(field.key)) td.classList.add('category-cell');
-    if (field.key === 'price' && value !== '—') td.textContent = `Rp ${value}`;
   }
   return td;
 }

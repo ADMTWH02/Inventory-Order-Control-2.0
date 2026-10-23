@@ -24,6 +24,12 @@ export function parseNumeric(value) {
   return Number.isFinite(number) ? number : null;
 }
 
+export function formatRoundedNumber(value) {
+  const number = parseNumeric(value);
+  if (number === null) return String(value ?? '');
+  return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(number);
+}
+
 export function getAutomaticStatus(stock, rop) {
   const stockValue = parseNumeric(stock);
   const ropValue = parseNumeric(rop);

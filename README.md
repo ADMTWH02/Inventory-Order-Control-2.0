@@ -79,6 +79,8 @@ Menu navigasi: **Ringkasan**, **Inventori**, dan **Import / Export**. Kolom data
 
 Ringkasan juga menampilkan jumlah material dengan Purchase Requisition dan Purchase Order terisi. Grafik donut merangkum nilai `Price × ROP` untuk material berstatus `PESAN` yang kedua kolom PR dan PO-nya kosong, dibagi berdasarkan kombinasi Part Category dan Sub-Category. Material tanpa angka Price atau ROP tidak dihitung dalam nilai grafik dan ditampilkan pada catatan grafik.
 
+Angka desimal pada tabel ditampilkan sebagai bilangan bulat dengan pemisah ribuan format Indonesia agar lebih mudah dibaca. Pembulatan hanya untuk tampilan; nilai tersimpan, kalkulasi, dan data Excel tetap mempertahankan presisi aslinya.
+
 ### Memperbarui fungsi Supabase
 
 Setiap perubahan `supabase/migrations/*.sql` perlu dijalankan di Supabase Dashboard → SQL Editor. Untuk fitur histori bulanan, jalankan [`202610240001_monthly_usage_and_automatic_calculations.sql`](./supabase/migrations/202610240001_monthly_usage_and_automatic_calculations.sql). Aplikasi tidak dapat mengubah skema atau fungsi database hanya dengan deploy Netlify.

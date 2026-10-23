@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   calculateRollingStats,
+  formatRoundedNumber,
   getAutomaticStatus,
   getProcurementSummary,
   latestMonthKeys,
@@ -55,6 +56,14 @@ test('numeric parsing handles Indonesian decimal and grouping separators', () =>
   assert.equal(parseNumeric('0.125'), 0.125);
   assert.equal(parseNumeric('-2,5'), -2.5);
   assert.equal(parseNumeric('not a number'), null);
+});
+
+test('numeric display rounds to whole numbers with Indonesian grouping', () => {
+  assert.equal(formatRoundedNumber('2808.98114387803'), '2.809');
+  assert.equal(formatRoundedNumber('0.4'), '0');
+  assert.equal(formatRoundedNumber('1.234,5'), '1.235');
+  assert.equal(formatRoundedNumber(''), '');
+  assert.equal(formatRoundedNumber('—'), '—');
 });
 
 test('automatic status orders below ROP and remains safe at or above ROP', () => {
