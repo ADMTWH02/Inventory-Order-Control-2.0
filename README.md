@@ -83,4 +83,4 @@ Angka desimal pada tabel ditampilkan sebagai bilangan bulat dengan pemisah ribua
 
 ### Memperbarui fungsi Supabase
 
-Setiap perubahan `supabase/migrations/*.sql` perlu dijalankan di Supabase Dashboard → SQL Editor. Untuk fitur histori bulanan, jalankan [`202610240001_monthly_usage_and_automatic_calculations.sql`](./supabase/migrations/202610240001_monthly_usage_and_automatic_calculations.sql). Aplikasi tidak dapat mengubah skema atau fungsi database hanya dengan deploy Netlify.
+Setiap perubahan `supabase/migrations/*.sql` perlu dijalankan di Supabase Dashboard → SQL Editor. Setelah migration histori bulanan [`202610240001_monthly_usage_and_automatic_calculations.sql`](./supabase/migrations/202610240001_monthly_usage_and_automatic_calculations.sql), jalankan juga [`202610260001_fix_inventory_history_save_conflict.sql`](./supabase/migrations/202610260001_fix_inventory_history_save_conflict.sql) untuk memperbaiki penyimpanan edit material. Aplikasi tidak dapat mengubah skema atau fungsi database hanya dengan deploy Netlify.
