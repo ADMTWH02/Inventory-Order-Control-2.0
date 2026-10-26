@@ -238,13 +238,13 @@ function renderMetrics() {
   renderOrderValueChart(procurement);
 }
 
-function renderOrderValueChart({ orderValueBySubcategory, missingValueCount }) {
+function renderOrderValueChart({ orderValueByCategory, missingValueCount }) {
   const chart = byId('order-value-chart');
   const legend = byId('order-value-legend');
   const empty = byId('order-value-empty');
   const note = byId('order-value-note');
   const svg = byId('order-value-donut');
-  const total = orderValueBySubcategory.reduce((sum, entry) => sum + entry.value, 0);
+  const total = orderValueByCategory.reduce((sum, entry) => sum + entry.value, 0);
   byId('order-value-total').textContent = formatRupiah(total);
   byId('order-value-total-center').textContent = formatRupiah(total);
   svg.replaceChildren();
@@ -253,12 +253,12 @@ function renderOrderValueChart({ orderValueBySubcategory, missingValueCount }) {
   empty.hidden = total > 0;
   note.textContent = missingValueCount
     ? `${missingValueCount.toLocaleString('id-ID')} material PESAN tanpa PR/PO tidak masuk grafik karena Price atau ROP belum terisi sebagai angka.`
-    : 'Nominal dihitung dari Price × ROP, dikelompokkan berdasarkan Part Category / Sub-Category.';
+    : 'Nominal dihitung dari Price × ROP, dikelompokkan berdasarkan Part Category.';
   if (total <= 0) return;
 
   const colors = ['#157f78', '#34768b', '#bc8d3c', '#bd594d', '#7864a5', '#4d936e', '#d07838', '#5073a3', '#aa6689', '#758b46'];
   let offset = 0;
-  for (const [index, entry] of orderValueBySubcategory.entries()) {
+  for (const [index, entry] of orderValueByCategory.entries()) {
     const circumference = 2 * Math.PI * 82;
     const segmentLength = (entry.value / total) * circumference;
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -272,7 +272,7 @@ function renderOrderValueChart({ orderValueBySubcategory, missingValueCount }) {
     circle.setAttribute('stroke-dashoffset', String(-offset));
     circle.setAttribute('transform', 'rotate(-90 120 120)');
     const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-    title.textContent = `${entry.category} / ${entry.subCategory}: ${formatRupiah(entry.value)}`;
+    title.textContent = `${entry.category}: ${formatRupiah(entry.value)}`;
     circle.append(title);
     svg.append(circle);
     offset += segmentLength;
@@ -285,7 +285,7 @@ function renderOrderValueChart({ orderValueBySubcategory, missingValueCount }) {
     const description = document.createElement('span');
     description.className = 'chart-legend-description';
     const label = document.createElement('strong');
-    label.textContent = `${entry.category} / ${entry.subCategory}`;
+    label.textContent = entry.category;
     const details = document.createElement('small');
     details.textContent = `${formatRupiah(entry.value)} · ${entry.itemCount.toLocaleString('id-ID')} item · ${((entry.value / total) * 100).toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`;
     description.append(label, details);

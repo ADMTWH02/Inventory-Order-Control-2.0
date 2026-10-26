@@ -40,7 +40,7 @@ export function getAutomaticStatus(stock, rop) {
 export function getProcurementSummary(items) {
   const withPurchaseRequest = items.filter((item) => String(item.purchase_requisition ?? '').trim() !== '').length;
   const withPurchaseOrder = items.filter((item) => String(item.purchase_order ?? '').trim() !== '').length;
-  const orderValueBySubcategory = new Map();
+  const orderValueByCategory = new Map();
   let missingValueCount = 0;
 
   for (const item of items) {
@@ -57,25 +57,26 @@ export function getProcurementSummary(items) {
     const amount = price * rop;
     if (amount <= 0) continue;
 
-    const category = String(item.part_category ?? '').trim() || 'Belum dikategorikan';
-    const subCategory = String(item.sub_category ?? '').trim() || 'Belum dikategorikan';
-    const label = `${category} / ${subCategory}`;
-    const summary = orderValueBySubcategory.get(label) || {
+    const rawCategory = String(item.part_category ?? '').trim() || 'Belum dikategorikan';
+    const normalizedCategory = rawCategory.toLocaleLowerCase('id').replace(/[^a-z]/g, '');
+    const category = ['conoperational', 'consumableoperational'].includes(normalizedCategory)
+      ? 'Consumable Operational'
+      : rawCategory;
+    const summary = orderValueByCategory.get(category) || {
       category,
-      subCategory,
       itemCount: 0,
       value: 0,
     };
     summary.itemCount += 1;
     summary.value += amount;
-    orderValueBySubcategory.set(label, summary);
+    orderValueByCategory.set(category, summary);
   }
 
   return {
     withPurchaseRequest,
     withPurchaseOrder,
     missingValueCount,
-    orderValueBySubcategory: [...orderValueBySubcategory.values()]
+    orderValueByCategory: [...orderValueByCategory.values()]
       .sort((left, right) => right.value - left.value),
   };
 }

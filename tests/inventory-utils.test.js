@@ -125,10 +125,40 @@ test('procurement summary counts populated PR and PO and groups uncommitted orde
   assert.equal(summary.withPurchaseRequest, 1);
   assert.equal(summary.withPurchaseOrder, 1);
   assert.equal(summary.missingValueCount, 1);
-  assert.deepEqual(summary.orderValueBySubcategory, [{
+  assert.deepEqual(summary.orderValueByCategory, [{
     category: 'Electrical',
-    subCategory: 'Cable',
     itemCount: 2,
     value: 3500,
   }]);
+});
+
+test('procurement chart groups by part category and expands operational abbreviation', () => {
+  const summary = getProcurementSummary([
+    {
+      status: 'PESAN',
+      price: '100',
+      rop_minstock: '1',
+      part_category: 'Con.Operational',
+      sub_category: 'Chemical',
+    },
+    {
+      status: 'PESAN',
+      price: '200',
+      rop_minstock: '1',
+      part_category: 'Consumable Operational',
+      sub_category: 'Lubricant',
+    },
+    {
+      status: 'PESAN',
+      price: '300',
+      rop_minstock: '1',
+      part_category: 'Consumable Part',
+      sub_category: 'Part',
+    },
+  ]);
+
+  assert.deepEqual(summary.orderValueByCategory, [
+    { category: 'Consumable Operational', itemCount: 2, value: 300 },
+    { category: 'Consumable Part', itemCount: 1, value: 300 },
+  ]);
 });

@@ -77,7 +77,7 @@ Form edit material menampilkan histori bulanan dan memungkinkan bulan lama diper
 
 Menu navigasi: **Ringkasan**, **Inventori**, dan **Import / Export**. Kolom data mencakup PPM, deskripsi/kategori, enam bulan pemakaian terbaru, rata-rata, parameter stok, status, harga, ROP/ROQ, order/purchasing, durasi, dan minimum order quantity.
 
-Ringkasan juga menampilkan jumlah material dengan Purchase Requisition dan Purchase Order terisi. Grafik donut merangkum nilai `Price × ROP` untuk material berstatus `PESAN` yang kedua kolom PR dan PO-nya kosong, dibagi berdasarkan kombinasi Part Category dan Sub-Category. Material tanpa angka Price atau ROP tidak dihitung dalam nilai grafik dan ditampilkan pada catatan grafik.
+Ringkasan juga menampilkan jumlah material dengan Purchase Requisition dan Purchase Order terisi. Grafik donut merangkum nilai `Price × ROP` untuk material berstatus `PESAN` yang kedua kolom PR dan PO-nya kosong, dikelompokkan berdasarkan Part Category. Kategori `Con.Operational` ditampilkan sebagai `Consumable Operational`, terpisah dari `Consumable Part`. Material tanpa angka Price atau ROP tidak dihitung dalam nilai grafik dan ditampilkan pada catatan grafik.
 
 Angka desimal pada tabel ditampilkan sebagai bilangan bulat dengan pemisah ribuan format Indonesia agar lebih mudah dibaca. Pembulatan hanya untuk tampilan; nilai tersimpan, kalkulasi, dan data Excel tetap mempertahankan presisi aslinya.
 
