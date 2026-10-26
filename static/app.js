@@ -152,7 +152,14 @@ function valueCell(item, field) {
     badge.textContent = value === '—' ? 'KOSONG' : value.toUpperCase();
     td.append(badge);
   } else {
-    td.textContent = ['ppm', 'purchase_requisition', 'purchase_order'].includes(field.key)
+    td.textContent = [
+      'ppm',
+      'material_description',
+      'part_category',
+      'sub_category',
+      'purchase_requisition',
+      'purchase_order',
+    ].includes(field.key)
       ? value
       : field.key === 'price'
         ? `Rp ${formatRoundedNumber(item[field.key])}`
